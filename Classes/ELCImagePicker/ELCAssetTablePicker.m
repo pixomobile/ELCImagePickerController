@@ -39,7 +39,7 @@
     } else {
         UIBarButtonItem *doneButtonItem = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(doneAction:)] autorelease];
         [self.navigationItem setRightBarButtonItem:doneButtonItem];
-        [self.navigationItem setTitle:@"Loading..."];
+        [self.navigationItem setTitle:localizedString(@"loading")];
     }
 
 	[self performSelectorInBackground:@selector(preparePhotos) withObject:nil];
@@ -94,7 +94,7 @@
                                           animated:NO];
         }
         
-        [self.navigationItem setTitle:self.singleSelection ? @"Pick Photo" : @"Pick Photos"];
+        [self.navigationItem setTitle:localizedString(self.singleSelection ? @"pick_photo" : @"pick_photos")];
     });
     
     [pool release];

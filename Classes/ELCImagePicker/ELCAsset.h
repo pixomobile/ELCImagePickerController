@@ -8,6 +8,8 @@
 #import <UIKit/UIKit.h>
 #import <AssetsLibrary/AssetsLibrary.h>
 
+NSString * localizedString(NSString * key);
+
 @class ELCAsset;
 
 @protocol ELCAssetDelegate <NSObject>

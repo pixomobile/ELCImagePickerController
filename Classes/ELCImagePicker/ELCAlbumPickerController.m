@@ -28,7 +28,7 @@
 {
     [super viewDidLoad];
 	
-	[self.navigationItem setTitle:@"Loading..."];
+	[self.navigationItem setTitle:localizedString(@"loading")];
 
     UIBarButtonItem *cancelButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self.parent action:@selector(cancelImagePicker)];
 	[self.navigationItem setRightBarButtonItem:cancelButton];
@@ -71,8 +71,24 @@
         
         // Group Enumerator Failure Block
         void (^assetGroupEnumberatorFailure)(NSError *) = ^(NSError *error) {
-            
-            UIAlertView * alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Album Error: %@ - %@", [error localizedDescription], [error localizedRecoverySuggestion]] delegate:nil cancelButtonTitle:@"Ok" otherButtonTitles:nil];
+            NSString * message;
+
+            if (error.code == ALAssetsLibraryAccessUserDeniedError ||
+                error.code == ALAssetsLibraryAccessGloballyDeniedError) {
+                NSString * appName = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleDisplayName"];
+                message = [NSString stringWithFormat:localizedString(@"noaccess_album"), appName];
+            } else {
+                message = error.localizedFailureReason;
+                if (error.localizedRecoverySuggestion != 0) {
+                    message = [NSString stringWithFormat:@"%@ - %@", message, error.localizedRecoverySuggestion];
+                }
+            }
+
+            UIAlertView * alert = [[UIAlertView alloc] initWithTitle:localizedString(@"error")
+                                                             message:message
+                                                            delegate:nil
+                                                   cancelButtonTitle:localizedString(@"ok")
+                                                   otherButtonTitles:nil];
             [alert show];
             [alert release];
             
@@ -91,7 +107,7 @@
 - (void)reloadTableView
 {
 	[self.tableView reloadData];
-	[self.navigationItem setTitle:@"Select an Album"];
+	[self.navigationItem setTitle:localizedString(@"select_album")];
 }
 
 - (void)selectedAssets:(NSArray*)assets

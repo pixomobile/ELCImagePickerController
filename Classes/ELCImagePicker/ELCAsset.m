@@ -8,6 +8,17 @@
 #import "ELCAsset.h"
 #import "ELCAssetTablePicker.h"
 
+NSString * localizedString(NSString * key)
+{
+    static NSBundle *bundle = nil;
+    static dispatch_once_t token;
+    dispatch_once(&token, ^{
+        NSURL * URL = [[NSBundle mainBundle] URLForResource:@"ELCImagePickerController" withExtension:@"bundle"];
+        bundle = [NSBundle bundleWithURL:URL];
+    });
+    return [bundle localizedStringForKey:key value:nil table:nil];
+}
+
 @implementation ELCAsset
 
 @synthesize asset = _asset;

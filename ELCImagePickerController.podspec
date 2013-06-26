@@ -12,7 +12,7 @@ Pod::Spec.new do |s|
     			:tag => '0.1.1'
     		   }
     s.platform = :ios, '5.0'
-    s.resources = 'Classes/**/*.{xib,png}'
+    s.resources = 'Classes/**/*.{xib,png}', 'ELCImagePickerController.bundle'
     s.source_files = 'Classes/ELCImagePicker/*.{h,m}'
     s.framework = 'Foundation', 'UIKit', 'AssetsLibrary'
     s.requires_arc = false
