@@ -48,7 +48,12 @@
 - (void)viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
-    self.columns = self.view.bounds.size.width / 80;
+
+    NSInteger columns = self.view.bounds.size.width / 80;
+    if (columns != self.columns) {
+        self.columns = columns;
+        [self reloadTable];
+    }
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation
@@ -82,27 +87,34 @@
     NSLog(@"done enumerating photos");
     
     dispatch_sync(dispatch_get_main_queue(), ^{
-        [self.tableView reloadData];
-        // scroll to bottom
-        int section = [self numberOfSectionsInTableView:self.tableView] - 1;
-        int row = [self tableView:self.tableView numberOfRowsInSection:section] - 1;
-        if (section >= 0 && row >= 0) {
-            NSIndexPath *ip = [NSIndexPath indexPathForRow:row
-                                                 inSection:section];
-            [self.tableView scrollToRowAtIndexPath:ip
-                                  atScrollPosition:UITableViewScrollPositionBottom
-                                          animated:NO];
+        if (self.columns > 0) {
+            [self reloadTable];
         }
-        
-        [self.navigationItem setTitle:localizedString(self.singleSelection ? @"pick_photo" : @"pick_photos")];
     });
     
     [pool release];
 
 }
 
+- (void)reloadTable
+{
+    [self.tableView reloadData];
+    // scroll to bottom
+    int section = [self numberOfSectionsInTableView:self.tableView] - 1;
+    int row = [self tableView:self.tableView numberOfRowsInSection:section] - 1;
+    if (section >= 0 && row >= 0) {
+        NSIndexPath *ip = [NSIndexPath indexPathForRow:row
+                                             inSection:section];
+        [self.tableView scrollToRowAtIndexPath:ip
+                              atScrollPosition:UITableViewScrollPositionBottom
+                                      animated:NO];
+    }
+
+    [self.navigationItem setTitle:localizedString(self.singleSelection ? @"pick_photo" : @"pick_photos")];
+}
+
 - (void)doneAction:(id)sender
-{	
+{
 	NSMutableArray *selectedAssetsImages = [[[NSMutableArray alloc] init] autorelease];
 	    
 	for(ELCAsset *elcAsset in self.elcAssets) {
@@ -143,7 +155,10 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return ceil([self.elcAssets count] / (float)self.columns);
+    if (self.columns == 0)
+        return 0;
+
+    return (self.elcAssets.count + self.columns - 1) / self.columns;
 }
 
 - (NSArray *)assetsForIndexPath:(NSIndexPath *)path
