@@ -30,10 +30,6 @@
     [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
 	[self.tableView setAllowsSelection:NO];
 
-    NSMutableArray *tempArray = [[NSMutableArray alloc] init];
-    self.elcAssets = tempArray;
-    [tempArray release];
-	
     if (self.immediateReturn) {
         
     } else {
@@ -71,6 +67,7 @@
 - (void)preparePhotos
 {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    NSMutableArray * assets = [[NSMutableArray alloc] init];
 
     NSLog(@"enumerating photos");
     [self.assetGroup enumerateAssetsUsingBlock:^(ALAsset *result, NSUInteger index, BOOL *stop) {
@@ -81,27 +78,29 @@
 
         ELCAsset *elcAsset = [[ELCAsset alloc] initWithAsset:result];
         [elcAsset setParent:self];
-        [self.elcAssets addObject:elcAsset];
+        [assets addObject:elcAsset];
         [elcAsset release];
      }];
     NSLog(@"done enumerating photos");
-    
+
+    self.elcAssets = assets;
+    [assets release];
+
     dispatch_sync(dispatch_get_main_queue(), ^{
         if (self.columns > 0) {
             [self reloadTable];
         }
     });
-    
-    [pool release];
 
+    [pool release];
 }
 
 - (void)reloadTable
 {
     [self.tableView reloadData];
     // scroll to bottom
-    int section = [self numberOfSectionsInTableView:self.tableView] - 1;
-    int row = [self tableView:self.tableView numberOfRowsInSection:section] - 1;
+    int section = self.tableView.numberOfSections - 1;
+    int row = [self.tableView numberOfRowsInSection:section] - 1;
     if (section >= 0 && row >= 0) {
         NSIndexPath *ip = [NSIndexPath indexPathForRow:row
                                              inSection:section];
