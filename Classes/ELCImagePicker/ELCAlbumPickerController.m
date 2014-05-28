@@ -66,7 +66,8 @@
             
             // Group Enumerator Failure Block
             void (^assetGroupEnumberatorFailure)(NSError *) = ^(NSError *error) {
-                
+                NSString * message;
+
                 if (error.code == ALAssetsLibraryAccessUserDeniedError ||
                     error.code == ALAssetsLibraryAccessGloballyDeniedError) {
                     NSString * appName = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleDisplayName"];

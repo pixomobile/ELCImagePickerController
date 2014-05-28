@@ -50,12 +50,7 @@
 - (void)viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
-
-    NSInteger columns = self.view.bounds.size.width / 80;
-    if (columns != self.columns) {
-        self.columns = columns;
-        [self reloadTable];
-    }
+    self.columns = self.view.bounds.size.width / 80;
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation
@@ -73,30 +68,30 @@
 - (void)preparePhotos
 {
     NSMutableArray * assets = [[NSMutableArray alloc] init];
-        @autoreleasepool {
-
+    @autoreleasepool {
+        
         [self.assetGroup enumerateAssetsUsingBlock:^(ALAsset *result, NSUInteger index, BOOL *stop) {
             
             if (result == nil) {
                 return;
             }
-
+            
             ELCAsset *elcAsset = [[ELCAsset alloc] initWithAsset:result];
             [elcAsset setParent:self];
             
             BOOL isAssetFiltered = NO;
             if (self.assetPickerFilterDelegate &&
-               [self.assetPickerFilterDelegate respondsToSelector:@selector(assetTablePicker:isAssetFilteredOut:)])
+                [self.assetPickerFilterDelegate respondsToSelector:@selector(assetTablePicker:isAssetFilteredOut:)])
             {
                 isAssetFiltered = [self.assetPickerFilterDelegate assetTablePicker:self isAssetFilteredOut:(ELCAsset*)elcAsset];
             }
-
+            
             if (!isAssetFiltered) {
                 [assets addObject:elcAsset];
             }
-
-         }];
-
+            
+        }];
+        
         dispatch_sync(dispatch_get_main_queue(), ^{
             self.elcAssets = assets;
             [self.tableView reloadData];
@@ -106,9 +101,9 @@
             if (section >= 0 && row >= 0) {
                 NSIndexPath *ip = [NSIndexPath indexPathForRow:row
                                                      inSection:section];
-                        [self.tableView scrollToRowAtIndexPath:ip
-                                              atScrollPosition:UITableViewScrollPositionBottom
-                                                      animated:NO];
+                [self.tableView scrollToRowAtIndexPath:ip
+                                      atScrollPosition:UITableViewScrollPositionBottom
+                                              animated:NO];
             }
             
             [self.navigationItem setTitle:self.singleSelection ? @"Pick Photo" : @"Pick Photos"];
@@ -118,7 +113,7 @@
 
 - (void)doneAction:(id)sender
 {
-	NSMutableArray *selectedAssetsImages = [[[NSMutableArray alloc] init] autorelease];
+	NSMutableArray *selectedAssetsImages = [[NSMutableArray alloc] init];
 
 	for (ELCAsset *elcAsset in self.elcAssets) {
 		if ([elcAsset selected]) {
