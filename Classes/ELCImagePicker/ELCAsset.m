@@ -21,9 +21,7 @@ NSString * localizedString(NSString * key)
 
 @implementation ELCAsset
 
-@synthesize asset = _asset;
-@synthesize parent = _parent;
-@synthesize selected = _selected;
+//Using auto synthesizers
 
 - (id)initWithAsset:(ALAsset*)asset
 {
@@ -32,7 +30,6 @@ NSString * localizedString(NSString * key)
 		self.asset = asset;
         _selected = NO;
     }
-    
 	return self;	
 }
 
@@ -43,6 +40,13 @@ NSString * localizedString(NSString * key)
 
 - (void)setSelected:(BOOL)selected
 {
+    if (selected) {
+        if ([_parent respondsToSelector:@selector(shouldSelectAsset:)]) {
+            if (![_parent shouldSelectAsset:self]) {
+                return;
+            }
+        }
+    }
     _selected = selected;
     if (selected) {
         if (_parent != nil && [_parent respondsToSelector:@selector(assetSelected:)]) {
@@ -51,11 +55,6 @@ NSString * localizedString(NSString * key)
     }
 }
 
-- (void)dealloc 
-{    
-    [_asset release];
-    [super dealloc];
-}
 
 @end
 

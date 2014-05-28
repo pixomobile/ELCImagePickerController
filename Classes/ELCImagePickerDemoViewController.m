@@ -14,38 +14,29 @@
 
 @interface ELCImagePickerDemoViewController ()
 
-@property (nonatomic, retain) ALAssetsLibrary *specialLibrary;
+@property (nonatomic, strong) ALAssetsLibrary *specialLibrary;
 
 @end
 
 @implementation ELCImagePickerDemoViewController
 
-@synthesize scrollView = _scrollView;
-@synthesize chosenImages = _chosenImages;
+//Using generated synthesizers
 
 - (IBAction)launchController
-{	
-    ELCAlbumPickerController *albumController = [[ELCAlbumPickerController alloc] initWithNibName: nil bundle: nil];
-	ELCImagePickerController *elcPicker = [[ELCImagePickerController alloc] initWithRootViewController:albumController];
-    [albumController setParent:elcPicker];
-	[elcPicker setDelegate:self];
+{
+	ELCImagePickerController *elcPicker = [[ELCImagePickerController alloc] initImagePicker];
+    elcPicker.maximumImagesCount = 4;
+    elcPicker.returnsOriginalImage = NO; //Only return the fullScreenImage, not the fullResolutionImage
+	elcPicker.imagePickerDelegate = self;
     
-    ELCImagePickerDemoAppDelegate *app = (ELCImagePickerDemoAppDelegate *)[[UIApplication sharedApplication] delegate];
-    if ([app.viewController respondsToSelector:@selector(presentViewController:animated:completion:)]){
-        [app.viewController presentViewController:elcPicker animated:YES completion:nil];
-    } else {
-        [app.viewController presentModalViewController:elcPicker animated:YES];
-    }
+    [self presentViewController:elcPicker animated:YES completion:nil];
     
-    [elcPicker release];
-    [albumController release];
 }
 
 - (IBAction)launchSpecialController
 {
     ALAssetsLibrary *library = [[ALAssetsLibrary alloc] init];
     self.specialLibrary = library;
-    [library release];
     NSMutableArray *groups = [NSMutableArray array];
     [_specialLibrary enumerateGroupsWithTypes:ALAssetsGroupSavedPhotos usingBlock:^(ALAssetsGroup *group, BOOL *stop) {
         if (group) {
@@ -58,7 +49,6 @@
         self.chosenImages = nil;
         UIAlertView * alert = [[UIAlertView alloc] initWithTitle:@"Error" message:[NSString stringWithFormat:@"Album Error: %@ - %@", [error localizedDescription], [error localizedRecoverySuggestion]] delegate:nil cancelButtonTitle:@"Ok" otherButtonTitles:nil];
         [alert show];
-        [alert release];
         
         NSLog(@"A problem occured %@", [error description]);
         // an error here means that the asset groups were inaccessable.
@@ -68,25 +58,21 @@
 
 - (void)displayPickerForGroup:(ALAssetsGroup *)group
 {
-	ELCAssetTablePicker *tablePicker = [[ELCAssetTablePicker alloc] initWithNibName: nil bundle: nil];
+	ELCAssetTablePicker *tablePicker = [[ELCAssetTablePicker alloc] initWithStyle:UITableViewStylePlain];
     tablePicker.singleSelection = YES;
     tablePicker.immediateReturn = YES;
     
 	ELCImagePickerController *elcPicker = [[ELCImagePickerController alloc] initWithRootViewController:tablePicker];
-    elcPicker.delegate = self;
+    elcPicker.maximumImagesCount = 1;
+    elcPicker.imagePickerDelegate = self;
+    elcPicker.returnsOriginalImage = NO; //Only return the fullScreenImage, not the fullResolutionImage
 	tablePicker.parent = elcPicker;
     
     // Move me
     tablePicker.assetGroup = group;
     [tablePicker.assetGroup setAssetsFilter:[ALAssetsFilter allAssets]];
     
-    if ([self respondsToSelector:@selector(presentViewController:animated:completion:)]){
-        [self presentViewController:elcPicker animated:YES completion:nil];
-    } else {
-        [self presentModalViewController:elcPicker animated:YES];
-    }
-	[tablePicker release];
-    [elcPicker release];
+    [self presentViewController:elcPicker animated:YES completion:nil];
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation
@@ -102,11 +88,7 @@
 
 - (void)elcImagePickerController:(ELCImagePickerController *)picker didFinishPickingMediaWithInfo:(NSArray *)info
 {
-    if ([self respondsToSelector:@selector(dismissViewControllerAnimated:completion:)]){
-        [self dismissViewControllerAnimated:YES completion:nil];
-    } else {
-        [self dismissModalViewControllerAnimated:YES];
-    }
+    [self dismissViewControllerAnimated:YES completion:nil];
 	
     for (UIView *v in [_scrollView subviews]) {
         [v removeFromSuperview];
@@ -117,7 +99,7 @@
     
     NSMutableArray *images = [NSMutableArray arrayWithCapacity:[info count]];
 	
-	for(NSDictionary *dict in info) {
+	for (NSDictionary *dict in info) {
 	
         UIImage *image = [dict objectForKey:UIImagePickerControllerOriginalImage];
         [images addObject:image];
@@ -127,7 +109,6 @@
 		imageview.frame = workingFrame;
 		
 		[_scrollView addSubview:imageview];
-		[imageview release];
 		
 		workingFrame.origin.x = workingFrame.origin.x + workingFrame.size.width;
 	}
@@ -140,33 +121,8 @@
 
 - (void)elcImagePickerControllerDidCancel:(ELCImagePickerController *)picker
 {
-    if ([self respondsToSelector:@selector(dismissViewControllerAnimated:completion:)]){
-        [self dismissViewControllerAnimated:YES completion:nil];
-    } else {
-        [self dismissModalViewControllerAnimated:YES];
-    }
+    [self dismissViewControllerAnimated:YES completion:nil];
 }
 
-- (void)didReceiveMemoryWarning
-{
-	// Releases the view if it doesn't have a superview.
-    [super didReceiveMemoryWarning];
-	
-	// Release any cached data, images, etc that aren't in use.
-}
-
-- (void)viewDidUnload
-{
-	// Release any retained subviews of the main view.
-	// e.g. self.myOutlet = nil;
-}
-
-
-- (void)dealloc
-{
-    [_specialLibrary release];
-    [_scrollView release];
-    [super dealloc];
-}
 
 @end
