@@ -6,119 +6,48 @@
 //
 
 #import "ELCAssetCell.h"
-#import "ELCAsset.h"
 
 @import Photos;
 
-@interface ELCAssetCell ()
-
-@property (nonatomic, strong) NSArray *rowAssets;
-@property (nonatomic, strong) NSMutableArray *imageViewArray;
-@property (nonatomic, strong) NSMutableArray *overlayViewArray;
-
-@end
-
-@implementation ELCAssetCell
-
-//Using auto synthesizers
-
-- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier
-{
-    self = [super initWithStyle:UITableViewCellStyleDefault reuseIdentifier:reuseIdentifier];
-	if (self) {
-        UITapGestureRecognizer *tapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(cellTapped:)];
-        [self addGestureRecognizer:tapRecognizer];
-        
-        NSMutableArray *mutableArray = [[NSMutableArray alloc] initWithCapacity:4];
-        self.imageViewArray = mutableArray;
-        
-        NSMutableArray *overlayArray = [[NSMutableArray alloc] initWithCapacity:4];
-        self.overlayViewArray = overlayArray;
-	}
-	return self;
+@implementation ELCAssetCell {
+    UIImageView * _imageView;
+    UIImageView * _overlayView;
 }
 
-- (void)setAssets:(NSArray *)assets
+- (instancetype)initWithFrame:(CGRect)frame
 {
-    self.rowAssets = assets;
-	for (UIImageView *view in _imageViewArray) {
-        [view removeFromSuperview];
-	}
-    for (UIImageView *view in _overlayViewArray) {
-        [view removeFromSuperview];
-	}
-    //set up a pointer here so we don't keep calling [UIImage imageNamed:] if creating overlays
-    UIImage *overlayImage = nil;
-
-    for (int i = 0; i < [_rowAssets count]; ++i) {
-        ELCAsset * asset = [_rowAssets objectAtIndex:i];
-
-        UIImageView * imageView;
-        
-        if (i < [_imageViewArray count]) {
-            imageView = [_imageViewArray objectAtIndex:i];
-        } else {
-            imageView = [[UIImageView alloc] init];
-            imageView.contentMode = UIViewContentModeScaleAspectFill;
-            imageView.clipsToBounds = YES;
-            [_imageViewArray addObject:imageView];
-        }
-        
-        [asset showThumbnailInImageView:imageView];
-
-        if (i < [_overlayViewArray count]) {
-            UIImageView *overlayView = [_overlayViewArray objectAtIndex:i];
-            overlayView.hidden = asset.selected ? NO : YES;
-        } else {
-            if (overlayImage == nil) {
-                overlayImage = [UIImage imageNamed:@"Overlay.png"];
-            }
-            UIImageView *overlayView = [[UIImageView alloc] initWithImage:overlayImage];
-            [_overlayViewArray addObject:overlayView];
-            overlayView.hidden = asset.selected ? NO : YES;
-        }
-    }
-}
-
-- (void)cellTapped:(UITapGestureRecognizer *)tapRecognizer
-{
-    CGPoint point = [tapRecognizer locationInView:self];
-    CGFloat totalWidth = self.rowAssets.count * 75 + (self.rowAssets.count - 1) * 4;
-    CGFloat startX = (self.bounds.size.width - totalWidth) / 2;
+    self = [super initWithFrame:frame];
     
-	CGRect frame = CGRectMake(startX, 2, 75, 75);
-	
-	for (int i = 0; i < [_rowAssets count]; ++i) {
-        if (CGRectContainsPoint(frame, point)) {
-            ELCAsset *asset = [_rowAssets objectAtIndex:i];
-            asset.selected = !asset.selected;
-            UIImageView *overlayView = [_overlayViewArray objectAtIndex:i];
-            overlayView.hidden = !asset.selected;
-            break;
-        }
-        frame.origin.x = frame.origin.x + frame.size.width + 4;
+    if (self) {
+        _imageView = [[UIImageView alloc] init];
+        _imageView.contentMode = UIViewContentModeScaleAspectFill;
+        _imageView.clipsToBounds = YES;
+        _imageView.frame = self.bounds;
+        [self addSubview:_imageView];
+
+        _overlayView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"Overlay"]];
+        _overlayView.frame = _imageView.frame;
+        _overlayView.hidden = YES;
+        [self addSubview:_overlayView];
     }
-}
-
-- (void)layoutSubviews
-{    
-    CGFloat totalWidth = self.rowAssets.count * 75 + (self.rowAssets.count - 1) * 4;
-    CGFloat startX = (self.bounds.size.width - totalWidth) / 2;
     
-	CGRect frame = CGRectMake(startX, 2, 75, 75);
-	
-	for (int i = 0; i < [_rowAssets count]; ++i) {
-		UIImageView *imageView = [_imageViewArray objectAtIndex:i];
-		[imageView setFrame:frame];
-		[self addSubview:imageView];
-        
-        UIImageView *overlayView = [_overlayViewArray objectAtIndex:i];
-        [overlayView setFrame:frame];
-        [self addSubview:overlayView];
-		
-		frame.origin.x = frame.origin.x + frame.size.width + 4;
-	}
+    return self;
 }
 
+- (void)setAsset:(ELCAsset *)asset
+{
+    _asset = asset;
+
+    [asset showThumbnailInImageView:_imageView];
+
+    _overlayView.hidden = _asset.selected ? NO : YES;
+}
+
+- (void)toggleSelection
+{
+    _asset.selected = ! _asset.selected;
+
+    _overlayView.hidden = !_asset.selected;
+}
 
 @end

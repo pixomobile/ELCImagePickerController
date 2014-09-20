@@ -12,31 +12,23 @@
 
 @import Photos;
 
-@interface ELCAssetTablePicker ()
-
-@property (nonatomic, assign) int columns;
-
-@end
+#define CELL_IDENTIFIER @"cell"
 
 @implementation ELCAssetTablePicker
 
-//Using auto synthesizers
-
-- (id)init
+- (instancetype)init
 {
-    self = [super init];
-    if (self) {
-        //Sets a reasonable default bigger then 0 for columns
-        //So that we don't have a divide by 0 scenario
-        self.columns = 4;
-    }
+    UICollectionViewFlowLayout * layout = [[UICollectionViewFlowLayout alloc] init];
+    layout.itemSize = CGSizeMake(THUMBNAIL_SIZE, THUMBNAIL_SIZE);
+
+    self = [super initWithCollectionViewLayout:layout];
+    
     return self;
 }
 
 - (void)viewDidLoad
 {
-    [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
-	[self.tableView setAllowsSelection:NO];
+    self.collectionView.backgroundColor = [UIColor whiteColor];
 
     if (self.immediateReturn) {
         
@@ -46,13 +38,9 @@
         [self.navigationItem setTitle:localizedString(@"loading")];
     }
 
-	[self performSelectorInBackground:@selector(preparePhotos) withObject:nil];
-}
+    [self.collectionView registerClass:[ELCAssetCell class] forCellWithReuseIdentifier:CELL_IDENTIFIER];
 
-- (void)viewWillAppear:(BOOL)animated
-{
-    [super viewWillAppear:animated];
-    self.columns = self.view.bounds.size.width / 80;
+	[self performSelectorInBackground:@selector(preparePhotos) withObject:nil];
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation
@@ -60,11 +48,17 @@
     return YES;
 }
 
-- (void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation
+- (void)viewDidLayoutSubviews
 {
-    [super didRotateFromInterfaceOrientation:fromInterfaceOrientation];
-    self.columns = self.view.bounds.size.width / 80;
-    [self.tableView reloadData];
+    UICollectionViewFlowLayout * layout = (UICollectionViewFlowLayout *)self.collectionViewLayout;
+
+    int width = self.collectionView.bounds.size.width;
+    int nCols = (width -  4) / (THUMBNAIL_SIZE + 4);
+    int padding = (width - nCols * THUMBNAIL_SIZE) / (nCols + 1);
+
+    layout.minimumInteritemSpacing = padding;
+    layout.minimumLineSpacing = padding;
+    layout.sectionInset = UIEdgeInsetsMake(padding, padding, padding, padding);
 }
 
 - (void)preparePhotos
@@ -108,18 +102,16 @@
 
         dispatch_sync(dispatch_get_main_queue(), ^{
             self.elcAssets = assets;
-            [self.tableView reloadData];
+            [self.collectionView reloadData];
             // scroll to bottom
-            long section = [self numberOfSectionsInTableView:self.tableView] - 1;
-            long row = [self tableView:self.tableView numberOfRowsInSection:section] - 1;
-            if (section >= 0 && row >= 0) {
-                NSIndexPath *ip = [NSIndexPath indexPathForRow:row
-                                                     inSection:section];
-                [self.tableView scrollToRowAtIndexPath:ip
-                                      atScrollPosition:UITableViewScrollPositionBottom
-                                              animated:NO];
-            }
+            NSInteger section = [self numberOfSectionsInCollectionView:self.collectionView] - 1;
+            NSInteger item = [self collectionView:self.collectionView numberOfItemsInSection:section] - 1;
             
+            if (section > 0 && item > 0) {
+                NSIndexPath *lastIndexPath = [NSIndexPath indexPathForItem:item inSection:section];
+                [self.collectionView scrollToItemAtIndexPath:lastIndexPath atScrollPosition:UICollectionViewScrollPositionBottom animated:NO];
+            }
+
             [self.navigationItem setTitle:self.singleSelection ? @"Pick Photo" : @"Pick Photos"];
         });
     }
@@ -166,51 +158,31 @@
         [(NSObject *)self.parent performSelector:@selector(selectedAssets:) withObject:singleAssetArray afterDelay:0];
     }
 }
-
-#pragma mark UITableViewDataSource Delegate Methods
-
-- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
+- (NSInteger)numberOfSectionsInCollectionView:(UICollectionView *)collectionView
 {
     // Return the number of sections.
     return 1;
 }
 
-
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+- (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section
 {
-    if (self.columns <= 0) { //Sometimes called before we know how many columns we have
-        self.columns = 4;
-    }
-
-    return (self.elcAssets.count + self.columns - 1) / self.columns;
+    return self.elcAssets.count;
 }
 
-- (NSArray *)assetsForIndexPath:(NSIndexPath *)path
+- (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath
 {
-    long index = path.row * self.columns;
-    long length = MIN(self.columns, [self.elcAssets count] - index);
-    return [self.elcAssets subarrayWithRange:NSMakeRange(index, length)];
-}
+    ELCAssetCell *cell = (ELCAssetCell*)[collectionView dequeueReusableCellWithReuseIdentifier:CELL_IDENTIFIER forIndexPath:indexPath];
 
-// Customize the appearance of table view cells.
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
-{    
-    static NSString *CellIdentifier = @"Cell";
-        
-    ELCAssetCell *cell = (ELCAssetCell*)[tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-
-    if (cell == nil) {		        
-        cell = [[ELCAssetCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
-    }
-    
-    [cell setAssets:[self assetsForIndexPath:indexPath]];
+    cell.asset = self.elcAssets[indexPath.item];
     
     return cell;
 }
 
-- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+- (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath
 {
-	return 79;
+    ELCAssetCell * cell = (ELCAssetCell *)[self.collectionView cellForItemAtIndexPath:indexPath];
+    
+    [cell toggleSelection];
 }
 
 - (int)totalSelectedAssets

@@ -6,10 +6,12 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "ELCAsset.h"
 
+@interface ELCAssetCell : UICollectionViewCell
 
-@interface ELCAssetCell : UITableViewCell
+@property (nonatomic) ELCAsset * asset;
 
-- (void)setAssets:(NSArray *)assets;
+- (void)toggleSelection;
 
 @end

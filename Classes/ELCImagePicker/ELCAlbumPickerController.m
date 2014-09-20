@@ -180,7 +180,7 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-	ELCAssetTablePicker *picker = [[ELCAssetTablePicker alloc] initWithNibName: nil bundle: nil];
+	ELCAssetTablePicker *picker = [[ELCAssetTablePicker alloc] init];
 	picker.parent = self;
 
     NSInteger row = indexPath.row;

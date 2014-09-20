@@ -11,7 +11,7 @@
 #import "ELCAssetSelectionDelegate.h"
 #import "ELCAssetPickerFilterDelegate.h"
 
-@interface ELCAssetTablePicker : UITableViewController <ELCAssetDelegate>
+@interface ELCAssetTablePicker : UICollectionViewController <ELCAssetDelegate>
 
 @property (nonatomic, weak) id <ELCAssetSelectionDelegate> parent;
 @property (nonatomic, strong) ALAssetsGroup *assetGroup;

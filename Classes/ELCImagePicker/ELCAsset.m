@@ -64,7 +64,7 @@ NSString * localizedString(NSString * key)
     } else {
         [[PHImageManager defaultManager]
          requestImageForAsset:(PHAsset *)_asset
-         targetSize:CGSizeMake(75, 75)
+         targetSize:CGSizeMake(THUMBNAIL_SIZE, THUMBNAIL_SIZE)
          contentMode:PHImageContentModeAspectFill
          options:nil
          resultHandler:^(UIImage *result, NSDictionary *info) {

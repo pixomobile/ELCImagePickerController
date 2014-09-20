@@ -8,6 +8,8 @@
 #import <UIKit/UIKit.h>
 #import <AssetsLibrary/AssetsLibrary.h>
 
+#define THUMBNAIL_SIZE 75
+
 NSString * localizedString(NSString * key);
 
 @class ELCAsset;
