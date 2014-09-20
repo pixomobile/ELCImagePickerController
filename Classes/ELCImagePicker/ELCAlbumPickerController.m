@@ -148,6 +148,13 @@
             // "All Photos" on iOS 8
             cell.textLabel.text = localizedString(@"all_photos");
             cell.imageView.image = nil;
+            
+            if (self.assetGroups.count > 0) {
+                // Hack: there is no easy way to get a thumbnail for PHAssetCollection
+                // Just use the thumbnail for album "Recent added"
+                ALAssetsGroup *g = (ALAssetsGroup*)self.assetGroups[0];
+                [cell.imageView setImage:[UIImage imageWithCGImage:g.posterImage]];
+            }
         }
 
         row --;
