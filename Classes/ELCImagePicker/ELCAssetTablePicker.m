@@ -76,9 +76,7 @@
         if (self.assetGroup == nil) {
             // iOS 8, "All Photos"
             // Fetch all assets, sorted by date created.
-            PHFetchOptions *options = [[PHFetchOptions alloc] init];
-            options.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"creationDate" ascending:YES]];
-            assetsFetchResults = [PHAsset fetchAssetsWithOptions:options];
+            assetsFetchResults = [PHAsset fetchAssetsWithMediaType:PHAssetMediaTypeImage options:nil];
             
             for (PHAsset * asset in assetsFetchResults) {
                 ELCAsset *elcAsset = [[ELCAsset alloc] initWithAsset:asset];
