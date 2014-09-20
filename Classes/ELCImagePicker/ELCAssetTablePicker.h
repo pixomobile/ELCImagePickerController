@@ -26,6 +26,4 @@
 - (int)totalSelectedAssets;
 - (void)preparePhotos;
 
-- (void)doneAction:(id)sender;
-
 @end

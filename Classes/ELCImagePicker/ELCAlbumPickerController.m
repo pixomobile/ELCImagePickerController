@@ -46,6 +46,9 @@
             void (^assetGroupEnumerator)(ALAssetsGroup *, BOOL *) = ^(ALAssetsGroup *group, BOOL *stop) 
             {
                 if (group == nil) {
+                    // Reload albums
+                    [self performSelectorOnMainThread:@selector(reloadTableView) withObject:nil waitUntilDone:YES];
+
                     return;
                 }
                 
@@ -58,9 +61,6 @@
                 else {
                     [self.assetGroups addObject:group];
                 }
-
-                // Reload albums
-                [self performSelectorOnMainThread:@selector(reloadTableView) withObject:nil waitUntilDone:YES];
             };
             
             // Group Enumerator Failure Block
@@ -126,7 +126,8 @@
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     // Return the number of rows in the section.
-    return [self.assetGroups count];
+    // Add "All Photos" on iOS 8
+    return [self.assetGroups count] + (NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_7_1);
 }
 
 
@@ -140,13 +141,28 @@
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
     }
     
-    // Get count
-    ALAssetsGroup *g = (ALAssetsGroup*)[self.assetGroups objectAtIndex:indexPath.row];
-    [g setAssetsFilter:[ALAssetsFilter allPhotos]];
-    NSInteger gCount = [g numberOfAssets];
+    NSInteger row = indexPath.row;
+
+    if (NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_7_1) {
+        if (row == 0) {
+            // "All Photos" on iOS 8
+            cell.textLabel.text = localizedString(@"all_photos");
+            cell.imageView.image = nil;
+        }
+
+        row --;
+    }
     
-    cell.textLabel.text = [NSString stringWithFormat:@"%@ (%ld)",[g valueForProperty:ALAssetsGroupPropertyName], (long)gCount];
-    [cell.imageView setImage:[UIImage imageWithCGImage:[(ALAssetsGroup*)[self.assetGroups objectAtIndex:indexPath.row] posterImage]]];
+    if (row >= 0) {
+        ALAssetsGroup *g = (ALAssetsGroup*)[self.assetGroups objectAtIndex:row];
+        
+        [g setAssetsFilter:[ALAssetsFilter allPhotos]];
+        NSInteger gCount = [g numberOfAssets];
+        
+        cell.textLabel.text = [NSString stringWithFormat:@"%@ (%ld)",[g valueForProperty:ALAssetsGroupPropertyName], (long)gCount];
+        [cell.imageView setImage:[UIImage imageWithCGImage:g.posterImage]];
+    }
+    
 	[cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
 	
     return cell;
@@ -160,8 +176,17 @@
 	ELCAssetTablePicker *picker = [[ELCAssetTablePicker alloc] initWithNibName: nil bundle: nil];
 	picker.parent = self;
 
-    picker.assetGroup = [self.assetGroups objectAtIndex:indexPath.row];
-    [picker.assetGroup setAssetsFilter:[ALAssetsFilter allPhotos]];
+    NSInteger row = indexPath.row;
+
+    if (NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_7_1) {
+        row --;
+    }
+
+    // If row < 0, then it's "All Photos" on iOS 8
+    if (row >= 0) {
+        picker.assetGroup = [self.assetGroups objectAtIndex:row];
+        [picker.assetGroup setAssetsFilter:[ALAssetsFilter allPhotos]];
+    }
     
 	picker.assetPickerFilterDelegate = self.assetPickerFilterDelegate;
 	

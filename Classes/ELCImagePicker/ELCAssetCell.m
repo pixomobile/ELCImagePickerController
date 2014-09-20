@@ -8,6 +8,8 @@
 #import "ELCAssetCell.h"
 #import "ELCAsset.h"
 
+@import Photos;
+
 @interface ELCAssetCell ()
 
 @property (nonatomic, strong) NSArray *rowAssets;
@@ -47,18 +49,23 @@
 	}
     //set up a pointer here so we don't keep calling [UIImage imageNamed:] if creating overlays
     UIImage *overlayImage = nil;
+
     for (int i = 0; i < [_rowAssets count]; ++i) {
+        ELCAsset * asset = [_rowAssets objectAtIndex:i];
 
-        ELCAsset *asset = [_rowAssets objectAtIndex:i];
-
+        UIImageView * imageView;
+        
         if (i < [_imageViewArray count]) {
-            UIImageView *imageView = [_imageViewArray objectAtIndex:i];
-            imageView.image = [UIImage imageWithCGImage:asset.asset.thumbnail];
+            imageView = [_imageViewArray objectAtIndex:i];
         } else {
-            UIImageView *imageView = [[UIImageView alloc] initWithImage:[UIImage imageWithCGImage:asset.asset.thumbnail]];
+            imageView = [[UIImageView alloc] init];
+            imageView.contentMode = UIViewContentModeScaleAspectFill;
+            imageView.clipsToBounds = YES;
             [_imageViewArray addObject:imageView];
         }
         
+        [asset showThumbnailInImageView:imageView];
+
         if (i < [_overlayViewArray count]) {
             UIImageView *overlayView = [_overlayViewArray objectAtIndex:i];
             overlayView.hidden = asset.selected ? NO : YES;
