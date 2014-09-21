@@ -72,12 +72,12 @@
             
             for (PHAssetCollection * moment in moments) {
                 PHFetchResult * assetsFetchResults = [PHAsset fetchAssetsInAssetCollection:moment options:nil];
-            
-            for (PHAsset * asset in assetsFetchResults) {
+
+                for (PHAsset * asset in assetsFetchResults) {
                     if (asset.mediaType == PHAssetMediaTypeImage) {
-                ELCAsset *elcAsset = [[ELCAsset alloc] initWithAsset:asset];
-                [assets addObject:elcAsset];
-            }
+                        ELCAsset *elcAsset = [[ELCAsset alloc] initWithAsset:asset];
+                        [assets addObject:elcAsset];
+                    }
                 }
             }
         } else {
@@ -107,13 +107,11 @@
         dispatch_sync(dispatch_get_main_queue(), ^{
             self.elcAssets = assets;
             [self.collectionView reloadData];
+
             // scroll to bottom
-            NSInteger section = [self numberOfSectionsInCollectionView:self.collectionView] - 1;
-            NSInteger item = [self collectionView:self.collectionView numberOfItemsInSection:section] - 1;
-            
-            if (section > 0 && item > 0) {
-                NSIndexPath *lastIndexPath = [NSIndexPath indexPathForItem:item inSection:section];
-                [self.collectionView scrollToItemAtIndexPath:lastIndexPath atScrollPosition:UICollectionViewScrollPositionBottom animated:NO];
+            if (assets.count > 0) {
+                NSIndexPath *lastIndexPath = [NSIndexPath indexPathForItem:assets.count - 1 inSection:0];
+                [self.collectionView scrollToItemAtIndexPath:lastIndexPath atScrollPosition:UICollectionViewScrollPositionTop animated:NO];
             }
 
             [self.navigationItem setTitle:self.singleSelection ? @"Pick Photo" : @"Pick Photos"];
