@@ -65,16 +65,20 @@
 {
     @autoreleasepool {
         NSMutableArray * assets = [[NSMutableArray alloc] init];
-        PHFetchResult * assetsFetchResults = nil;
     
         if (self.assetGroup == nil) {
             // iOS 8, "All Photos"
-            // Fetch all assets, sorted by date created.
-            assetsFetchResults = [PHAsset fetchAssetsWithMediaType:PHAssetMediaTypeImage options:nil];
+            PHFetchResult * moments = [PHAssetCollection fetchMomentsWithOptions:nil];
+            
+            for (PHAssetCollection * moment in moments) {
+                PHFetchResult * assetsFetchResults = [PHAsset fetchAssetsInAssetCollection:moment options:nil];
             
             for (PHAsset * asset in assetsFetchResults) {
+                    if (asset.mediaType == PHAssetMediaTypeImage) {
                 ELCAsset *elcAsset = [[ELCAsset alloc] initWithAsset:asset];
                 [assets addObject:elcAsset];
+            }
+                }
             }
         } else {
             [self.assetGroup enumerateAssetsUsingBlock:^(ALAsset *result, NSUInteger index, BOOL *stop) {
