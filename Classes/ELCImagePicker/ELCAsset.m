@@ -62,9 +62,11 @@ NSString * localizedString(NSString * key)
     if ([_asset isKindOfClass:[ALAsset class]]) {
         imageView.image = [UIImage imageWithCGImage:((ALAsset *)_asset).thumbnail];
     } else {
+        float scale = [UIScreen mainScreen].scale;
+
         [[PHImageManager defaultManager]
          requestImageForAsset:(PHAsset *)_asset
-         targetSize:CGSizeMake(THUMBNAIL_SIZE, THUMBNAIL_SIZE)
+         targetSize:CGSizeMake(THUMBNAIL_SIZE * scale, THUMBNAIL_SIZE * scale)
          contentMode:PHImageContentModeAspectFill
          options:nil
          resultHandler:^(UIImage *result, NSDictionary *info) {
