@@ -10,7 +10,6 @@
 #import "ELCAsset.h"
 #import "ELCAlbumPickerController.h"
 
-@import Photos;
 
 #define CELL_IDENTIFIER @"cell"
 
@@ -63,47 +62,31 @@
 
 - (void)preparePhotos
 {
+    NSMutableArray * assets = [[NSMutableArray alloc] init];
     @autoreleasepool {
-        NSMutableArray * assets = [[NSMutableArray alloc] init];
-    
-        if (self.assetGroup == nil) {
-            // iOS 8, "All Photos"
-            PHFetchResult * moments = [PHAssetCollection fetchMomentsWithOptions:nil];
+        
+        [self.assetGroup enumerateAssetsUsingBlock:^(ALAsset *result, NSUInteger index, BOOL *stop) {
             
-            for (PHAssetCollection * moment in moments) {
-                PHFetchResult * assetsFetchResults = [PHAsset fetchAssetsInAssetCollection:moment options:nil];
-
-                for (PHAsset * asset in assetsFetchResults) {
-                    if (asset.mediaType == PHAssetMediaTypeImage) {
-                        ELCAsset *elcAsset = [[ELCAsset alloc] initWithAsset:asset];
-                        [assets addObject:elcAsset];
-                    }
-                }
+            if (result == nil) {
+                return;
             }
-        } else {
-            [self.assetGroup enumerateAssetsUsingBlock:^(ALAsset *result, NSUInteger index, BOOL *stop) {
-                
-                if (result == nil) {
-                    return;
-                }
-                
-                ELCAsset *elcAsset = [[ELCAsset alloc] initWithAsset:result];
-                [elcAsset setParent:self];
-                
-                BOOL isAssetFiltered = NO;
-                if (self.assetPickerFilterDelegate &&
-                    [self.assetPickerFilterDelegate respondsToSelector:@selector(assetTablePicker:isAssetFilteredOut:)])
-                {
-                    isAssetFiltered = [self.assetPickerFilterDelegate assetTablePicker:self isAssetFilteredOut:(ELCAsset*)elcAsset];
-                }
-                
-                if (!isAssetFiltered) {
-                    [assets addObject:elcAsset];
-                }
-                
-            }];
-        }
-
+            
+            ELCAsset *elcAsset = [[ELCAsset alloc] initWithAsset:result];
+            [elcAsset setParent:self];
+            
+            BOOL isAssetFiltered = NO;
+            if (self.assetPickerFilterDelegate &&
+                [self.assetPickerFilterDelegate respondsToSelector:@selector(assetTablePicker:isAssetFilteredOut:)])
+            {
+                isAssetFiltered = [self.assetPickerFilterDelegate assetTablePicker:self isAssetFilteredOut:(ELCAsset*)elcAsset];
+            }
+            
+            if (!isAssetFiltered) {
+                [assets addObject:elcAsset];
+            }
+            
+        }];
+        
         dispatch_sync(dispatch_get_main_queue(), ^{
             self.elcAssets = assets;
             [self.collectionView reloadData];

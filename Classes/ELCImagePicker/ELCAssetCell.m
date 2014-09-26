@@ -7,8 +7,6 @@
 
 #import "ELCAssetCell.h"
 
-@import Photos;
-
 @implementation ELCAssetCell {
     UIImageView * _imageView;
     UIImageView * _overlayView;
@@ -38,7 +36,7 @@
 {
     _asset = asset;
 
-    [asset showThumbnailInImageView:_imageView];
+    _imageView.image = [UIImage imageWithCGImage:asset.asset.thumbnail];
 
     _overlayView.hidden = _asset.selected ? NO : YES;
 }

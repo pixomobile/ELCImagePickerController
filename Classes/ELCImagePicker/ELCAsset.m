@@ -8,8 +8,6 @@
 #import "ELCAsset.h"
 #import "ELCAssetTablePicker.h"
 
-@import Photos;
-
 NSString * localizedString(NSString * key)
 {
     static NSBundle *bundle = nil;
@@ -25,7 +23,7 @@ NSString * localizedString(NSString * key)
 
 //Using auto synthesizers
 
-- (id)initWithAsset:(NSObject *)asset
+- (id)initWithAsset:(ALAsset*)asset
 {
 	self = [super init];
 	if (self) {
@@ -54,24 +52,6 @@ NSString * localizedString(NSString * key)
         if (_parent != nil && [_parent respondsToSelector:@selector(assetSelected:)]) {
             [_parent assetSelected:self];
         }
-    }
-}
-
-- (void)showThumbnailInImageView:(UIImageView *)imageView
-{
-    if ([_asset isKindOfClass:[ALAsset class]]) {
-        imageView.image = [UIImage imageWithCGImage:((ALAsset *)_asset).thumbnail];
-    } else {
-        float scale = [UIScreen mainScreen].scale;
-
-        [[PHImageManager defaultManager]
-         requestImageForAsset:(PHAsset *)_asset
-         targetSize:CGSizeMake(THUMBNAIL_SIZE * scale, THUMBNAIL_SIZE * scale)
-         contentMode:PHImageContentModeAspectFill
-         options:nil
-         resultHandler:^(UIImage *result, NSDictionary *info) {
-             imageView.image = result;
-         }];
     }
 }
 

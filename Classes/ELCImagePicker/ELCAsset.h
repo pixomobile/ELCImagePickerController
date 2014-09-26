@@ -24,12 +24,10 @@ NSString * localizedString(NSString * key);
 
 @interface ELCAsset : NSObject
 
-@property (nonatomic, strong) NSObject *asset;
+@property (nonatomic, strong) ALAsset *asset;
 @property (nonatomic, weak) id<ELCAssetDelegate> parent;
 @property (nonatomic, assign) BOOL selected;
 
-- (id)initWithAsset:(NSObject *)asset;
-
-- (void)showThumbnailInImageView:(UIImageView *)imageview;
+- (id)initWithAsset:(ALAsset *)asset;
 
 @end

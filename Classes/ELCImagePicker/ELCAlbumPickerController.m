@@ -126,8 +126,7 @@
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     // Return the number of rows in the section.
-    // Add "All Photos" on iOS 8
-    return [self.assetGroups count] + (NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_7_1);
+    return [self.assetGroups count];
 }
 
 
@@ -141,35 +140,13 @@
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
     }
     
-    NSInteger row = indexPath.row;
-
-    if (NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_7_1) {
-        if (row == 0) {
-            // "All Photos" on iOS 8
-            cell.textLabel.text = localizedString(@"all_photos");
-            cell.imageView.image = nil;
-            
-            if (self.assetGroups.count > 0) {
-                // Hack: there is no easy way to get a thumbnail for PHAssetCollection
-                // Just use the thumbnail for album "Recent added"
-                ALAssetsGroup *g = (ALAssetsGroup*)self.assetGroups[0];
-                [cell.imageView setImage:[UIImage imageWithCGImage:g.posterImage]];
-            }
-        }
-
-        row --;
-    }
+    // Get count
+    ALAssetsGroup *g = (ALAssetsGroup*)[self.assetGroups objectAtIndex:indexPath.row];
+    [g setAssetsFilter:[ALAssetsFilter allPhotos]];
+    NSInteger gCount = [g numberOfAssets];
     
-    if (row >= 0) {
-        ALAssetsGroup *g = (ALAssetsGroup*)[self.assetGroups objectAtIndex:row];
-        
-        [g setAssetsFilter:[ALAssetsFilter allPhotos]];
-        NSInteger gCount = [g numberOfAssets];
-        
-        cell.textLabel.text = [NSString stringWithFormat:@"%@ (%ld)",[g valueForProperty:ALAssetsGroupPropertyName], (long)gCount];
-        [cell.imageView setImage:[UIImage imageWithCGImage:g.posterImage]];
-    }
-    
+    cell.textLabel.text = [NSString stringWithFormat:@"%@ (%ld)",[g valueForProperty:ALAssetsGroupPropertyName], (long)gCount];
+    [cell.imageView setImage:[UIImage imageWithCGImage:[(ALAssetsGroup*)[self.assetGroups objectAtIndex:indexPath.row] posterImage]]];
 	[cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
 	
     return cell;
@@ -183,17 +160,8 @@
 	ELCAssetTablePicker *picker = [[ELCAssetTablePicker alloc] init];
 	picker.parent = self;
 
-    NSInteger row = indexPath.row;
-
-    if (NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_7_1) {
-        row --;
-    }
-
-    // If row < 0, then it's "All Photos" on iOS 8
-    if (row >= 0) {
-        picker.assetGroup = [self.assetGroups objectAtIndex:row];
-        [picker.assetGroup setAssetsFilter:[ALAssetsFilter allPhotos]];
-    }
+    picker.assetGroup = [self.assetGroups objectAtIndex:indexPath.row];
+    [picker.assetGroup setAssetsFilter:[ALAssetsFilter allPhotos]];
     
 	picker.assetPickerFilterDelegate = self.assetPickerFilterDelegate;
 	
